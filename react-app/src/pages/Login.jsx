@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { togglePasswordType } from "../utils/password";
-import "../styles/Login.css"; // jeśli komponent Login.jsx
+import "../styles/Login.css"; 
+import { login } from "../api/auth";
 
 
 export default function Login() {
@@ -17,25 +18,26 @@ export default function Login() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        const res = await fetch("http://localhost:5000/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
-        });
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+    });
 
-        const data = await res.json();
+    const data = await res.json();
 
-        if (!res.ok) {
-            alert(data.message || "Błąd logowania");
-            return;
-        }
+    if (!res.ok) {
+        alert(data.message || "Błąd logowania");
+        return;
+    }
 
-        localStorage.setItem("token", data.token);
-        login(data.user);
-        navigate("/");
-    };
+    localStorage.setItem("token", data.token);
+    login(data.user);
+    navigate("/");
+};
+
 
     const handleTogglePassword = () => {
         setPasswordType((prev) => togglePasswordType(prev));
