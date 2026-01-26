@@ -10,8 +10,13 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:5000", "https://gut-games.vercel.app"], 
+  origin: [
+    "http://localhost:3000",        // React lokalnie
+    "https://gut-games.vercel.app", // React na Vercel
+  ],
+  credentials: true,
 }));
+
 
 app.use(express.json());
 
