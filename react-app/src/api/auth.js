@@ -1,9 +1,7 @@
-// react-app/src/api/auth.js
-
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function login(email, password) {
-    if (!API_URL) throw new Error("REACT_APP_API_URL nie jest ustawione!");
+    if (!API_URL) throw new Error("VITE_API_URL nie jest ustawione!");
 
     const res = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -11,10 +9,10 @@ export async function login(email, password) {
         body: JSON.stringify({ email, password }),
     });
 
-    const text = await res.text(); // najpierw pobieramy jako tekst
+    const text = await res.text();
     let data;
     try {
-        data = JSON.parse(text); // dopiero teraz parsujemy
+        data = JSON.parse(text);
     } catch {
         console.error("Backend zwrócił niepoprawny JSON:", text);
         throw new Error("Błąd backendu: niepoprawny JSON");
@@ -22,6 +20,6 @@ export async function login(email, password) {
 
     if (!res.ok) throw new Error(data.message || "Login failed");
 
-    return data; // { token, user, message }
+    return data;
 }
 
