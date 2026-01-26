@@ -10,6 +10,9 @@ export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    // 🔹 Twój backend URL z Vite env
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
@@ -17,28 +20,27 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 🔹 DEBUG: sprawdzamy czy URL backendu jest ustawiony
-        console.log("API URL:", process.env.REACT_APP_API_URL);
+        console.log("API URL:", API_URL);
 
-        if (!process.env.REACT_APP_API_URL) {
-            alert("Backend URL nie jest ustawiony. Sprawdź REACT_APP_API_URL.");
+        if (!API_URL) {
+            alert("Backend URL nie jest ustawiony. Sprawdź VITE_API_URL.");
             return;
         }
 
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+            const res = await fetch(`${API_URL}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
 
-            // bezpieczne parsowanie odpowiedzi
+            // Bezpieczne parsowanie odpowiedzi
             const text = await res.text();
             let data;
             try {
                 data = JSON.parse(text);
             } catch {
-                console.error("Odpowiedź nie jest JSON-em:", text);
+                console.error("Odpowiedź backendu nie jest JSON-em:", text);
                 alert("Błąd serwera: odpowiedź nie jest JSON");
                 return;
             }
@@ -48,13 +50,13 @@ export default function Login() {
                 return;
             }
 
-            // zapis tokena + logowanie użytkownika
+            // Zapis tokena + logowanie użytkownika
             localStorage.setItem("token", data.token);
             login(data.user);
             navigate("/");
 
         } catch (err) {
-            console.error("Fetch error:", err);
+            console.error("Błąd połączenia z backendem:", err);
             alert("Błąd połączenia z serwerem");
         }
     };
