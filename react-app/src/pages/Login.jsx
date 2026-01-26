@@ -1,17 +1,12 @@
-console.log("API URL:", process.env.REACT_APP_API_URL);
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { togglePasswordType } from "../utils/password";
-import "../styles/Login.css"; 
-import { login } from "../api/auth";
-
+import "../styles/Login.css";
 
 export default function Login() {
     const [form, setForm] = useState({ email: "", password: "" });
     const [passwordType, setPasswordType] = useState("password");
-
     const { login } = useAuth();
     const navigate = useNavigate();
 
@@ -20,26 +15,49 @@ export default function Login() {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-    });
+        // 🔹 DEBUG: sprawdzamy czy URL backendu jest ustawiony
+        console.log("API URL:", process.env.REACT_APP_API_URL);
 
-    const data = await res.json();
+        if (!process.env.REACT_APP_API_URL) {
+            alert("Backend URL nie jest ustawiony. Sprawdź REACT_APP_API_URL.");
+            return;
+        }
 
-    if (!res.ok) {
-        alert(data.message || "Błąd logowania");
-        return;
-    }
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
 
-    localStorage.setItem("token", data.token);
-    login(data.user);
-    navigate("/");
-};
+            // bezpieczne parsowanie odpowiedzi
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                console.error("Odpowiedź nie jest JSON-em:", text);
+                alert("Błąd serwera: odpowiedź nie jest JSON");
+                return;
+            }
 
+            if (!res.ok) {
+                alert(data.message || "Błąd logowania");
+                return;
+            }
+
+            // zapis tokena + logowanie użytkownika
+            localStorage.setItem("token", data.token);
+            login(data.user);
+            navigate("/");
+
+        } catch (err) {
+            console.error("Fetch error:", err);
+            alert("Błąd połączenia z serwerem");
+        }
+    };
 
     const handleTogglePassword = () => {
         setPasswordType((prev) => togglePasswordType(prev));
@@ -86,3 +104,4 @@ export default function Login() {
         </div>
     );
 }
+
