@@ -1,3 +1,5 @@
+console.log("API URL:", process.env.REACT_APP_API_URL);
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
