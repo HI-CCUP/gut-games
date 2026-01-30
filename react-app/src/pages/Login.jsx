@@ -24,11 +24,14 @@ export default function Login() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+
       if (!res.ok) {
-        alert(data.message || "Błąd logowania");
+        const errorData = await res.json();
+        alert(errorData.message || "Błąd logowania");
         return;
       }
+
+      const data = await res.json();
       localStorage.setItem("token", data.token);
       login(data.user);
       navigate("/");
@@ -68,8 +71,15 @@ export default function Login() {
               placeholder="Hasło"
               required
             />
-            <button type="button" onClick={handleTogglePassword} className="showPassword">
-              <FontAwesomeIcon icon={passwordType === "password" ? faEyeSlash : faEye} className="password-eye"/>
+            <button
+              type="button"
+              onClick={handleTogglePassword}
+              className="showPassword"
+            >
+              <FontAwesomeIcon
+                icon={passwordType === "password" ? faEyeSlash : faEye}
+                className="password-eye"
+              />
             </button>
           </div>
         </div>

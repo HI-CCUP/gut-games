@@ -19,19 +19,26 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.message || "Błąd rejestracji");
-      return;
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(errorData.message || "Błąd rejestracji");
+        return;
+      }
+
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      login(data.user);
+      navigate("/");
+    } catch {
+      alert("Błąd połączenia z serwerem");
     }
-    localStorage.setItem("token", data.token);
-    login(data.user);
-    navigate("/");
   };
 
   const handleTogglePassword = () => {
@@ -44,19 +51,52 @@ export default function Register() {
       <form onSubmit={handleSubmit}>
         <div className="input-wrapper">
           <label>Nazwa użytkownika:</label>
-          <input type="text" name="username" placeholder="Nick" value={form.username} onChange={handleChange} required />
+          <input
+            type="text"
+            name="username"
+            placeholder="Nick"
+            value={form.username}
+            onChange={handleChange}
+            required
+          />
         </div>
+
         <div className="input-wrapper">
           <label>Email:</label>
-          <input type="email" name="email" placeholder="Twój email" value={form.email} onChange={handleChange} required />
+          <input
+            type="email"
+            name="email"
+            placeholder="Twój email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
         </div>
+
         <div className="input-wrapper">
           <label>Hasło:</label>
-          <input type={passwordType} name="password" value={form.password} onChange={handleChange} placeholder="Hasło" required />
-          <button type="button" onClick={handleTogglePassword} className="showPassword">
-            <FontAwesomeIcon icon={passwordType === "password" ? faEyeSlash : faEye} className="password-eye"/>
-          </button>
+          <div className="password-input-container" style={{ position: 'relative' }}>
+            <input
+              type={passwordType}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Hasło"
+              required
+            />
+            <button
+              type="button"
+              onClick={handleTogglePassword}
+              className="showPassword"
+            >
+              <FontAwesomeIcon
+                icon={passwordType === "password" ? faEyeSlash : faEye}
+                className="password-eye"
+              />
+            </button>
+          </div>
         </div>
+
         <button type="submit">Zarejestruj się</button>
       </form>
     </div>
