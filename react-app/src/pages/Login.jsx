@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { login as loginRequest } from "../api/auth";
 import "../styles/Login.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
@@ -10,7 +11,6 @@ export default function Login() {
   const [passwordType, setPasswordType] = useState("password");
   const { login } = useAuth();
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,26 +18,17 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        alert(errorData.message || "Błąd logowania");
-        return;
-      }
+    const result = await loginRequest(form.email, form.password);
 
-      const data = await res.json();
-      localStorage.setItem("token", data.token);
-      login(data.user);
-      navigate("/");
-    } catch {
-      alert("Błąd połączenia z serwerem");
+    if (result.error) {
+      alert(result.message);
+      return;
     }
+
+    localStorage.setItem("token", result.token);
+    login(result.user);
+    navigate("/");
   };
 
   const handleTogglePassword = () => {
@@ -62,7 +53,10 @@ export default function Login() {
 
         <div className="input-wrapper">
           <label>Hasło:</label>
-          <div className="password-input-container" style={{ position: 'relative' }}>
+          <div
+            className="password-input-container"
+            style={{ position: "relative" }}
+          >
             <input
               type={passwordType}
               name="password"
@@ -89,4 +83,3 @@ export default function Login() {
     </div>
   );
 }
-
