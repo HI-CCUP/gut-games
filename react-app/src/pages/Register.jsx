@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { register as registerRequest } from "../api/auth";
-import "../styles/Login.css";
-import "../styles/Register.css";
+import "../styles/Form.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -90,7 +89,7 @@ export default function Register() {
             <button
               type="button"
               onClick={handleTogglePassword}
-              className="showPassword"
+              className="showPassword_register"
             >
               <FontAwesomeIcon
                 icon={passwordType === "password" ? faEyeSlash : faEye}

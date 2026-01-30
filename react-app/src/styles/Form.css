@@ -26,15 +26,16 @@
     font-size: 1rem;
 }
 
-.input-wrapper input:focus{
+.input-wrapper input:focus {
     outline: none;
     border-color: var(--neon-green);
 }
 
-.showPassword {
+.showPassword_login,
+.showPassword_register {
     position: absolute;
     right: 0.5em;
-    top: -50%;
+
     background: none;
     border: none;
     cursor: pointer;
@@ -43,14 +44,19 @@
     line-height: 1;
 }
 
-.showPassword:hover {
+.showPassword_login {
+    top: -5%;
+}
+
+.showPassword_register {
+    top: -5%;
+}
+
+.showPassword_login:hover,
+.showPassword_register:hover {
     box-shadow: none;
 }
 
-.input-wrapper button:hover{
-    transform: translateY(-50%);
-}
-
-.password-eye{
+.password-eye {
     color: var(--neon-green-soft);
 }
