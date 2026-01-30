@@ -34,8 +34,7 @@
 .showPassword {
     position: absolute;
     right: 0.5em;
-    top: 50%;
-    transform: translateY(-50%);
+    top: -50%;
     background: none;
     border: none;
     cursor: pointer;
@@ -45,10 +44,13 @@
 }
 
 .showPassword:hover {
-    transform: translateY(-50%);
     box-shadow: none;
 }
 
 .input-wrapper button:hover{
     transform: translateY(-50%);
+}
+
+.password-eye{
+    color: var(--neon-green-soft);
 }

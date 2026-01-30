@@ -1,5 +1,5 @@
 import React from "react";
-import PropTypes from "prop-types";
+//import PropTypes from "prop-types";
 
 const GlitchText = ({ children, className = "", tag: Tag = "span" }) => {
     return (
@@ -9,10 +9,10 @@ const GlitchText = ({ children, className = "", tag: Tag = "span" }) => {
     );
 };
 
-GlitchText.propTypes = {
+/*GlitchText.propTypes = {
     children: PropTypes.string.isRequired,
     className: PropTypes.string,
     tag: PropTypes.string,
-};
+};*/
 
 export default GlitchText;
