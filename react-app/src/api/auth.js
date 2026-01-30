@@ -40,7 +40,7 @@ export async function login(email, password) {
 
 export async function register(username, email, password) {
     try {
-        const res = await fetch("/api/register", {
+        const res = await fetch(`${API_URL}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, email, password }),
@@ -60,8 +60,10 @@ export async function register(username, email, password) {
         }
 
         return data;
-    } catch {
+    } catch (err) {
+        console.error("Błąd sieci:", err);
         return { error: true, message: "Błąd połączenia z serwerem" };
     }
 }
+
 
