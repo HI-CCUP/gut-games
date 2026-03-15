@@ -1,8 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export async function login(email, password) {
     try {
-        const res = await fetch(`${API_URL}/auth/login`, {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -31,7 +31,7 @@ export async function login(email, password) {
 
 export async function register(username, email, password) {
     try {
-        const res = await fetch(`${API_URL}/auth/register`, {
+        const res = await fetch(`${API_URL}/api/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, email, password }),
@@ -64,7 +64,7 @@ export async function addGame(file, title, description) {
         formData.append("title", title);
         formData.append("description", description);
 
-        const res = await fetch(`${API_URL}/auth/add`, {
+        const res = await fetch(`${API_URL}/api/auth/add`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
