@@ -17,8 +17,13 @@ const upload = multer({
 });
 
 //GOOGLE CLOUD STORAGE
-const gcs = new Storage({ keyFilename: "gcs-key.json" });
-const bucket = gcs.bucket("gut-games-game-files-bucket");
+const gcsCredentials = process.env.GCS_KEY_JSON 
+  ? JSON.parse(process.env.GCS_KEY_JSON) 
+  : undefined;const gcs = new Storage({
+  credentials: gcsCredentials,
+  projectId: gcsCredentials?.project_id,
+});
+const bucket = gcs.bucket(process.env.GCS_BUCKET_NAME || "gut-games-game-files-bucket");
 
 router.post("/register", async (req, res) => {
   try {
