@@ -81,6 +81,7 @@ export default function Comments({ gameId }) {
                         }}
                         required
                     />
+                    {/*dodawanie komentarza*/}
                     <button 
                         type="submit"
                         style={{
