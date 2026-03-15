@@ -6,10 +6,10 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     // Dynamiczny adres API: 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
     useEffect(() => {
-        fetch(`${API_URL}/api/games`) 
+        fetch(`${API_URL}/games`) 
             .then(res => {
                 if (!res.ok) throw new Error("Błąd pobierania danych");
                 return res.json();
