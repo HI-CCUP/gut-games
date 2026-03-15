@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { Storage } from "@google-cloud/storage";
+import fs from "fs"; // Dodajemy fs do sprawdzenia pliku
 
 import User from "../models/User.js";
 import Game from "../models/Game.js";
@@ -13,16 +14,25 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ 
     storage,
-    limits: { fileSize: 50 * 1024 * 1024 } //limit wielkości pliku
+    limits: { fileSize: 50 * 1024 * 1024 } 
 });
 
-//GOOGLE CLOUD STORAGE
-const gcsCredentials = process.env.GCS_KEY_JSON 
-  ? JSON.parse(process.env.GCS_KEY_JSON) 
-  : undefined;const gcs = new Storage({
-  credentials: gcsCredentials,
-  projectId: gcsCredentials?.project_id,
-});
+// --- KONFIGURACJA GOOGLE CLOUD STORAGE ---
+let gcsConfig = {};
+
+if (fs.existsSync("gcs-key.json")) {
+    // 1. Jeśli plik istnieje (LOKALNIE), używamy go
+    gcsConfig = { keyFilename: "gcs-key.json" };
+    console.log("GCS: Używam pliku klucza lokalnego.");
+} else if (process.env.GCS_KEY_JSON) {
+    // 2. Jeśli pliku nie ma (VERCEL/RENDER), używamy zmiennej
+    gcsConfig = {
+        credentials: JSON.parse(process.env.GCS_KEY_JSON),
+    };
+    console.log("GCS: Używam klucza ze zmiennych środowiskowych.");
+}
+
+const gcs = new Storage(gcsConfig);
 const bucket = gcs.bucket(process.env.GCS_BUCKET_NAME || "gut-games-game-files-bucket");
 
 router.post("/register", async (req, res) => {
@@ -98,27 +108,36 @@ router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
     const filename = `${Date.now()}-${safeFileName}`;
     const blob = bucket.file(filename);
 
-    await blob.save(file.buffer, {
-      resumable: false,
-      contentType: file.mimetype,
-      metadata: {
-        cacheControl: "public, max-age=31536000",//zapamietywanie pliku na rok przez przeglądarkę
-      }
+    const stream = blob.createWriteStream({
+        resumable: false,
+        contentType: file.mimetype,
+        metadata: {
+            cacheControl: "public, max-age=31536000",
+        }
     });
 
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
-
-    const newGame = await Game.create({
-      title,
-      description: description || "",
-      gameUrl: publicUrl,
-      author: req.userId,
+    stream.on('error', (err) => {
+        throw err;
     });
 
-    res.status(201).json({ 
-      message: "Gra została pomyślnie dodana do biblioteki!", 
-      game: newGame 
+    stream.on('finish', async () => {
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+
+        const newGame = await Game.create({
+          title,
+          description: description || "",
+          gameUrl: publicUrl,
+          author: req.userId,
+        });
+
+        res.status(201).json({ 
+          message: "Gra została pomyślnie dodana do biblioteki!", 
+          game: newGame 
+        });
     });
+
+    stream.end(file.buffer);
+
   } catch (err) {
     console.error("Błąd GCS / MongoDB:", err);
     res.status(500).json({ message: "Nie udało się zapisać gry. Spróbuj ponownie później." });
