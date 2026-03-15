@@ -39,7 +39,6 @@ export default function AddGame() {
 
         if (result.error) return alert(result.message);
 
-        // Opcjonalnie: jeśli backend zwraca token i user
         if (result.token && result.user) {
             localStorage.setItem("token", result.token);
             login(result.user);

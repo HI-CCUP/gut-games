@@ -9,18 +9,15 @@ export default function GamePage() {
     const [loading, setLoading] = useState(true);
     const countedRef = useRef(false);
 
-    // DODANO: Definicja API_URL
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
     useEffect(() => {
         if (!countedRef.current) {
-            // POPRAWIONO: Dodano API_URL
             fetch(`${API_URL}/games/${id}/view`, { method: "POST" })
                 .catch(err => console.error("Błąd licznika wyświetleń:", err));
             countedRef.current = true;
         }
 
-        // POPRAWIONO: Dodano API_URL
         fetch(`${API_URL}/games/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error("Nie udało się pobrać gry");
@@ -32,7 +29,7 @@ export default function GamePage() {
             })
             .catch(err => {
                 console.error("Błąd pobierania gry:", err);
-                setLoading(false); // Żeby nie wisiało "Ładowanie..." w nieskończoność
+                setLoading(false);
             });
     }, [id, API_URL]);
 

@@ -70,7 +70,7 @@ router.post("/:id/comments", authMiddleware, async (req, res) => {
                 game.ratings.push({ userId, rating: ratingVal });
             }
 
-            // KLUCZOWE: Upewniamy się, że sumujemy LICZBY
+            // czy na 100%sumujemy LICZBY
             game.ratingCount = game.ratings.length;
             const sum = game.ratings.reduce((acc, curr) => acc + Number(curr.rating), 0);
             game.ratingAvg = sum / game.ratingCount;
@@ -82,7 +82,7 @@ router.post("/:id/comments", authMiddleware, async (req, res) => {
         res.status(201).json({ 
             message: "Dodano", 
             comment: populatedComment,
-            ratingAvg: game.ratingAvg // Wysyłamy nową średnią
+            ratingAvg: game.ratingAvg
         });
     } catch (err) {
         res.status(500).json({ message: "Błąd serwera" });
