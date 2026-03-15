@@ -1,37 +1,101 @@
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import RatingStars from "../components/RatingStars";
+import Comments from "../components/Comment";
 
 export default function GamePage() {
     const { id } = useParams();
+    const [game, setGame] = useState(null);
+    const [loading, setLoading] = useState(true);
     const countedRef = useRef(false);
 
     useEffect(() => {
-        if (countedRef.current) return;
+        //ciulowy licznik wyświetleń
+        if (!countedRef.current) {
+            fetch(`/api/games/${id}/view`, { method: "POST" });
+            countedRef.current = true;
+        }
 
-        countedRef.current = true;
-
-        const key = `views_${id}`;
-        const currentViews = parseInt(localStorage.getItem(key) || "0");
-        localStorage.setItem(key, currentViews + 1);
+        fetch(`/api/games/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                setGame(data);
+                setLoading(false);
+            })
+            .catch(err => console.error("Błąd pobierania gry:", err));
     }, [id]);
 
+    if (loading) return <div className="container">Ładowanie gry...</div>;
+    if (!game) return <div className="container">Nie znaleziono gry.</div>;
+
+    const isWebGame = game.gameUrl.endsWith(".html") || game.gameUrl.endsWith(".js");
+
     return (
-        <div className="container">
-            <h1>Gra {id}</h1>
-            <p>Tutaj będzie iframe lub embed gry.</p>
-            <div
-                style={{
-                    width: "100%",
-                    height: "500px",
-                    backgroundColor: "#222",
-                    color: "#0ff",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                Miejsce na grę
+        <div className="container game-page">
+            <h1>{game.title}</h1>
+            <p>{game.description}</p>
+
+            <div className="game-display-area" style={{ 
+                width: "100%", 
+                minHeight: "500px", 
+                backgroundColor: "#111", 
+                borderRadius: "8px",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                border: "2px solid #333"
+            }}>
+                {isWebGame ? (
+                    //jesli w hml/js
+                    <iframe
+                        src={game.gameUrl}
+                        title={game.title}
+                        style={{ width: "100%", height: "600px", border: "none" }}
+                        sandbox="allow-scripts allow-same-origin"
+                    />
+                ) : (
+                    //inny format - plik do pobrania
+                    <div style={{ textAlign: "center", padding: "40px" }}>
+                        <div style={{ fontSize: "50px", marginBottom: "20px" }}><p>Pobierz</p></div>
+                        <h3>Ta gra wymaga pobrania</h3>
+                        <p>Format pliku nie jest obsługiwany bezpośrednio w przeglądarce.</p>
+                        <a 
+                            href={game.gameUrl} 
+                            download 
+                            className="download-button"
+                            style={{
+                                display: "inline-block",
+                                padding: "12px 24px",
+                                backgroundColor: "#0ff",
+                                color: "#000",
+                                textDecoration: "none",
+                                fontWeight: "bold",
+                                borderRadius: "4px",
+                                marginTop: "20px"
+                            }}
+                        >
+                            POBIERZ GRĘ
+                        </a>
+                    </div>
+                )}
             </div>
+
+            <hr style={{ margin: "40px 0", borderColor: "#333" }} />
+
+            
+            <section className="rating-section">
+                <h3>Oceń tę grę</h3>
+                <RatingStars gameId={id} initialRating={game.averageRating} />
+            </section>
+
+            <hr style={{ margin: "40px 0", borderColor: "#333" }} />
+
+            <section className="comments-section">
+                <h3>Komentarze</h3>
+                <Comments gameId={id} />
+            </section>
         </div>
     );
 }

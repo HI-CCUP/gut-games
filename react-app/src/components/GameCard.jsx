@@ -8,9 +8,9 @@ const GameCard = ({ game }) => {
             <h3>{game.title}</h3>
             <p>Odwiedzenia: {game.views}</p>
 
-            <Link to={`/game/${game.id}`} className="play-button">
-                Graj
-            </Link>
+            <Link to={`/game/${game._id}`} className="play-button">
+    Graj
+</Link>
         </div>
     );
 };

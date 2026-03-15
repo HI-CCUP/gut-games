@@ -16,6 +16,8 @@ const Navbar = () => {
             <div className="links">
                 <Link to="/">Strona główna</Link>
                 <Link to="/rankings">Rankingi</Link>
+                <Link to="/add">Dodaj Grę</Link>
+                
 
                 {!user ? (
                     <>

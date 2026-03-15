@@ -1,29 +1,45 @@
+import { useEffect, useState } from "react";
 import GameCard from "../components/GameCard";
-import GlitchText from "../components/GlitchText";
-
-const games = [
-    { id: 1, title: "Pixel Adventure", thumbnail: "/game1.png" },
-    { id: 2, title: "Retro Racer", thumbnail: "/game2.png" },
-    { id: 3, title: "Arcade Quest", thumbnail: "/game3.png" },  
-];
 
 const Home = () => {
-    const gamesWithViews = games.map((game) => ({
-        ...game,
-        views: parseInt(localStorage.getItem(`views_${game.id}`) || "0"),
-    }));
+    const [games, setGames] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const sortedGames = [...gamesWithViews].sort(
-        (a, b) => b.views - a.views
-    );
+    // Dynamiczny adres API: 
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+    useEffect(() => {
+        fetch(`${API_URL}/api/games`) 
+            .then(res => {
+                if (!res.ok) throw new Error("Błąd pobierania danych");
+                return res.json();
+            })
+            .then(data => {
+                setGames(Array.isArray(data) ? data : []);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Błąd:", err);
+                setLoading(false);
+            });
+    }, [API_URL]);
+
+    // Sortowanie
+    const sortedGames = [...games].sort((a, b) => (b.views || 0) - (a.views || 0));
+
+    if (loading) return <div className="container"><p>Ładowanie gier...</p></div>;
 
     return (
         <div className="container">
             <h1>Najpopularniejsze gry</h1>
             <div className="game-list">
-                {sortedGames.map((game) => (
-                    <GameCard key={game.id} game={game} />
-                ))}
+                {sortedGames.length > 0 ? (
+                    sortedGames.map(game => (
+                        <GameCard key={game._id} game={game} />
+                    ))
+                ) : (
+                    <p>Obecnie nie mamy żadnych gier. Dodaj coś!</p>
+                )}
             </div>
         </div>
     );

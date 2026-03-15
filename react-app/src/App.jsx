@@ -6,6 +6,7 @@ import Register from "./pages/Register";
 import GamePage from "./pages/GamePage";
 import Profile from "./pages/Profile";
 import Rankings from "./pages/Rankings";
+import AddGame from "./pages/AddGame";
 import "./styles/style.css";
 
 export default function App() {
@@ -19,6 +20,9 @@ export default function App() {
         <Route path="/game/:id" element={<GamePage />} />
         <Route path="/profile/:id" element={<Profile />} />
         <Route path="/rankings" element={<Rankings />} />
+        
+        <Route path="/add" element={<AddGame />} />
+        
       </Routes>
     </>
   );
