@@ -9,21 +9,32 @@ export default function GamePage() {
     const [loading, setLoading] = useState(true);
     const countedRef = useRef(false);
 
+    // DODANO: Definicja API_URL
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
     useEffect(() => {
-        //ciulowy licznik wyświetleń
         if (!countedRef.current) {
-            fetch(`/api/games/${id}/view`, { method: "POST" });
+            // POPRAWIONO: Dodano API_URL
+            fetch(`${API_URL}/games/${id}/view`, { method: "POST" })
+                .catch(err => console.error("Błąd licznika wyświetleń:", err));
             countedRef.current = true;
         }
 
-        fetch(`/api/games/${id}`)
-            .then(res => res.json())
+        // POPRAWIONO: Dodano API_URL
+        fetch(`${API_URL}/games/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Nie udało się pobrać gry");
+                return res.json();
+            })
             .then(data => {
                 setGame(data);
                 setLoading(false);
             })
-            .catch(err => console.error("Błąd pobierania gry:", err));
-    }, [id]);
+            .catch(err => {
+                console.error("Błąd pobierania gry:", err);
+                setLoading(false); // Żeby nie wisiało "Ładowanie..." w nieskończoność
+            });
+    }, [id, API_URL]);
 
     if (loading) return <div className="container">Ładowanie gry...</div>;
     if (!game) return <div className="container">Nie znaleziono gry.</div>;
@@ -84,16 +95,11 @@ export default function GamePage() {
 
             <hr style={{ margin: "40px 0", borderColor: "#333" }} />
 
-            
-            <section className="rating-section">
-                <h3>Oceń tę grę</h3>
-                <RatingStars gameId={id} initialRating={game.averageRating} />
-            </section>
-
-            <hr style={{ margin: "40px 0", borderColor: "#333" }} />
 
             <section className="comments-section">
-                <h3>Komentarze</h3>
+                <div className="game-stats">
+                    <h2>Średnia ocena: {game.ratingAvg ? game.ratingAvg.toFixed(1) : "0.0"}/5.0</h2>
+                </div>
                 <Comments gameId={id} />
             </section>
         </div>

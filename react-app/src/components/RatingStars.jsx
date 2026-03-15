@@ -3,8 +3,8 @@ import React, { useState } from "react";
 export default function RatingStars({ gameId, initialRating }) {
     const [rating, setRating] = useState(0);
 
-    // Dynamiczny adres API
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    // POPRAWIONO: Ujednolicone API_URL (kończy się na /api)
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
     const handleRate = async (value) => {
         setRating(value);
@@ -17,7 +17,7 @@ export default function RatingStars({ gameId, initialRating }) {
         }
 
         try {
-            const res = await fetch(`${API_URL}/api/ratings/${gameId}`, {
+            const res = await fetch(`${API_URL}/games/${gameId}/rate`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -26,12 +26,18 @@ export default function RatingStars({ gameId, initialRating }) {
                 body: JSON.stringify({ rating: value }),
             });
 
-            if (res.ok) {
-                alert(`Oceniono na ${value} gwiazdek!`);
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.message || "Błąd podczas oceniania");
+                }
             } else {
-                const errorData = await res.json();
-                alert(errorData.message || "Błąd podczas oceniania");
+                const errorText = await res.text();
+                console.error("Błąd oceniania (nie-JSON):", errorText);
+                alert("Wystąpił nieoczekiwany błąd serwera.");
             }
+
         } catch (err) {
             console.error("Błąd sieci:", err);
             alert("Nie udało się połączyć z serwerem.");
