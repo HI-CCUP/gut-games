@@ -6,26 +6,49 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-/**
- * @route   GET /api/games/:id
- * @desc    Pobiera szczegóły gry (w tym ratingAvg i ratingCount)
- */
+// --- FUNKCJA POMOCNICZA DO OBLICZEŃ ---
+const updateGameRating = async (game, userId, ratingVal) => {
+    if (!game.ratings) game.ratings = [];
+
+    const existingIndex = game.ratings.findIndex(r => r.userId?.toString() === userId.toString());
+
+    if (existingIndex >= 0) {
+        game.ratings[existingIndex].rating = Number(ratingVal);
+    } else {
+        game.ratings.push({ userId, rating: Number(ratingVal) });
+    }
+
+    game.ratingCount = game.ratings.length;
+    const sum = game.ratings.reduce((acc, curr) => acc + Number(curr.rating), 0);
+    game.ratingAvg = sum / game.ratingCount;
+
+    return await game.save();
+};
+
+// --- TRASY PUBLICZNE ---
+
+// Pobierz wszystkie gry
+router.get("/", async (req, res) => {
+    try {
+        const games = await getGames();
+        res.json(games);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Szczegóły konkretnej gry
 router.get("/:id", async (req, res) => {
     try {
         const game = await Game.findById(req.params.id).populate("author", "username");
-        if (!game) {
-            return res.status(404).json({ message: "Nie znaleziono gry" });
-        }
+        if (!game) return res.status(404).json({ message: "Nie znaleziono gry" });
         res.json(game);
     } catch (err) {
         res.status(500).json({ error: "Błąd bazy danych" });
     }
 });
 
-/**
- * @route   GET /api/games/:id/comments
- * @desc    Pobiera komentarze wraz z ocenami wystawionymi przez użytkowników
- */
+// Pobierz komentarze do gry
 router.get("/:id/comments", async (req, res) => {
     try {
         const comments = await Comment.find({ game: req.params.id })
@@ -37,108 +60,69 @@ router.get("/:id/comments", async (req, res) => {
     }
 });
 
-/**
- * @route   POST /api/games/:id/comments
- * @desc    Dodaje komentarz i aktualizuje średnią ocenę gry
- */
+// --- TRASY WYMAGAJĄCE LOGOWANIA ---
+
+// Dodaj komentarz i ocenę
 router.post("/:id/comments", authMiddleware, async (req, res) => {
     try {
         const { content, rating } = req.body;
-        const userId = req.userId;
-        const ratingVal = Number(rating) || 5; // Wymuszamy typ liczbowy
+        const ratingVal = Number(rating) || 5;
 
         if (!content || content.trim().length === 0) {
-            return res.status(400).json({ message: "Treść nie może być pusta" });
+            return res.status(400).json({ message: "Treść komentarza nie może być pusta" });
         }
 
+        const game = await Game.findById(req.params.id);
+        if (!game) return res.status(404).json({ message: "Gra nie istnieje" });
+
+        // 1. Zapisz komentarz
         const newComment = await Comment.create({
             game: req.params.id,
-            user: userId,
+            user: req.userId,
             content: content,
             rating: ratingVal
         });
 
-        const game = await Game.findById(req.params.id);
-        if (game) {
-            if (!game.ratings) game.ratings = [];
-
-            const existingIndex = game.ratings.findIndex(r => r.userId?.toString() === userId);
-
-            if (existingIndex >= 0) {
-                game.ratings[existingIndex].rating = ratingVal;
-            } else {
-                game.ratings.push({ userId, rating: ratingVal });
-            }
-
-            // czy na 100%sumujemy LICZBY
-            game.ratingCount = game.ratings.length;
-            const sum = game.ratings.reduce((acc, curr) => acc + Number(curr.rating), 0);
-            game.ratingAvg = sum / game.ratingCount;
-
-            await game.save();
-        }
+        // 2. Aktualizuj oceny w obiekcie gry (używamy pomocnika)
+        const updatedGame = await updateGameRating(game, req.userId, ratingVal);
 
         const populatedComment = await newComment.populate("user", "username");
+        
         res.status(201).json({ 
-            message: "Dodano", 
+            message: "Dodano komentarz", 
             comment: populatedComment,
-            ratingAvg: game.ratingAvg
+            ratingAvg: updatedGame.ratingAvg 
         });
     } catch (err) {
-        res.status(500).json({ message: "Błąd serwera" });
+        console.error(err);
+        res.status(500).json({ message: "Błąd serwera podczas dodawania komentarza" });
     }
 });
 
-/**
- * @route   POST /api/games/:id/rate
- * @desc    Szybka ocena
- */
+// Sama ocena (bez komentarza)
 router.post("/:id/rate", authMiddleware, async (req, res) => {
     try {
         const { rating } = req.body;
-        const userId = req.userId;
-
         if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({ message: "Ocena musi być 1-5" });
+            return res.status(400).json({ message: "Ocena musi mieścić się w przedziale 1-5" });
         }
 
         const game = await Game.findById(req.params.id);
         if (!game) return res.status(404).json({ message: "Gra nie znaleziona" });
 
-        if (!game.ratings) game.ratings = [];
+        const updatedGame = await updateGameRating(game, req.userId, rating);
 
-        const existingIndex = game.ratings.findIndex(r => r.userId?.toString() === userId);
-
-        if (existingIndex >= 0) {
-            game.ratings[existingIndex].rating = rating;
-        } else {
-            game.ratings.push({ userId, rating });
-        }
-
-        game.ratingCount = game.ratings.length;
-        const sum = game.ratings.reduce((acc, curr) => acc + curr.rating, 0);
-        game.ratingAvg = sum / game.ratingCount;
-
-        await game.save();
         res.json({ 
             message: "Ocena zapisana", 
-            ratingAvg: game.ratingAvg, 
-            ratingCount: game.ratingCount 
+            ratingAvg: updatedGame.ratingAvg, 
+            ratingCount: updatedGame.ratingCount 
         });
     } catch (err) {
         res.status(500).json({ message: "Błąd serwera" });
     }
 });
 
-router.get("/", async (req, res) => {
-    try {
-        const games = await getGames();
-        res.json(games);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
+// Licznik wyświetleń
 router.post("/:id/view", async (req, res) => {
     try {
         const game = await incrementView(req.params.id);
@@ -146,16 +130,6 @@ router.post("/:id/view", async (req, res) => {
         res.json({ views: game.views });
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
-});
-
-router.post('/', authMiddleware, async (req, res) => {
-    try {
-        const gameData = { ...req.body, author: req.userId };
-        const game = await Game.create(gameData);
-        res.status(201).json(game);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
     }
 });
 
