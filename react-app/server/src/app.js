@@ -19,6 +19,5 @@ app.use("/api/test", testRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
 
 export default app;
