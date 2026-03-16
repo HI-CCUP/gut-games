@@ -7,7 +7,6 @@ import authRoutes from "./routes/auth.routes.js";
 import gameRoutes from "./routes/game.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import Comment from "./models/Comment.js";
-import adminRoutes from "./routes/admin.routes.js";
 
 dotenv.config();
 
