@@ -11,7 +11,7 @@ const Navbar = () => {
 
     return (
         <nav className="navbar">
-            <GlitchText tag="div" className="logo">Odyssey of Your Games</GlitchText>
+            <GlitchText tag="div" className="logo">Gut Games</GlitchText>
 
             <div className="links">
                 <Link to="/">Strona główna</Link>
