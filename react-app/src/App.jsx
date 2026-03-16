@@ -7,6 +7,8 @@ import GamePage from "./pages/GamePage";
 import Rankings from "./pages/Rankings";
 import AddGame from "./pages/AddGame";
 import UserProfile from "./pages/UserProfile";
+import AdminRoute from "./components/AdminRoute";
+import AdminPanel from "./pages/AdminPanel";
 import "./styles/style.css";
 
 export default function App() {
@@ -20,6 +22,13 @@ export default function App() {
         <Route path="/game/:id" element={<GamePage />} />
         <Route path="/rankings" element={<Rankings />} />
         <Route path="/profile" element={<UserProfile />} />
+        <Route 
+    path="/admin" 
+    element={
+        <AdminRoute>
+            <AdminPanel />
+        </AdminRoute>
+    } />
         
         <Route path="/add" element={<AddGame />} />
         
