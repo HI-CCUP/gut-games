@@ -25,11 +25,6 @@ const Navbar = () => {
                     </>
                 ) : (
                     <>
-                        {user.isAdmin && (
-                            <Link to="/admin">
-                                Admin
-                            </Link>
-                        )}
                         <Link to="/add">Dodaj Grę</Link>
                         <Link to="/profile">Profil</Link>
                         <button onClick={logout} className="logout-btn">
