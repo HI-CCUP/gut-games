@@ -4,9 +4,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import GamePage from "./pages/GamePage";
-import Profile from "./pages/Profile";
 import Rankings from "./pages/Rankings";
 import AddGame from "./pages/AddGame";
+import UserProfile from "./pages/UserProfile";
 import "./styles/style.css";
 
 export default function App() {
@@ -18,8 +18,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/game/:id" element={<GamePage />} />
-        <Route path="/profile/:id" element={<Profile />} />
         <Route path="/rankings" element={<Rankings />} />
+        <Route path="/profile" element={<UserProfile />} />
         
         <Route path="/add" element={<AddGame />} />
         

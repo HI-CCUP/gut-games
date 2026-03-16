@@ -16,7 +16,6 @@ const Navbar = () => {
             <div className="links">
                 <Link to="/">Strona główna</Link>
                 <Link to="/rankings">Rankingi</Link>
-                <Link to="/add">Dodaj Grę</Link>
                 
 
                 {!user ? (
@@ -26,7 +25,8 @@ const Navbar = () => {
                     </>
                 ) : (
                     <>
-                        <Link to={`/profile/${user.id}`}>Profil</Link>
+                        <Link to="/add">Dodaj Grę</Link>
+                        <Link to="/profile">Profil</Link>
                         <button onClick={logout} className="logout-btn">
                             Wyloguj
                         </button>
