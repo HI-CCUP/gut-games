@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { Storage } from "@google-cloud/storage";
-import fs from "fs"; // Dodajemy fs do sprawdzenia pliku
+import fs from "fs";
 
 import User from "../models/User.js";
 import Game from "../models/Game.js";
@@ -21,20 +21,26 @@ const upload = multer({
 let gcsConfig = {};
 
 if (fs.existsSync("gcs-key.json")) {
-    // 1. Jeśli plik istnieje (LOKALNIE), używamy go
     gcsConfig = { keyFilename: "gcs-key.json" };
     console.log("GCS: Używam pliku klucza lokalnego.");
 } else if (process.env.GCS_KEY_JSON) {
-    // 2. Jeśli pliku nie ma (VERCEL/RENDER), używamy zmiennej
-    gcsConfig = {
-        credentials: JSON.parse(process.env.GCS_KEY_JSON),
-    };
-    console.log("GCS: Używam klucza ze zmiennych środowiskowych.");
+    try {
+        const credentials = JSON.parse(process.env.GCS_KEY_JSON);
+        // FIX dla Vercela: Naprawa znaków nowej linii w kluczu prywatnym
+        if (credentials.private_key) {
+            credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+        }
+        gcsConfig = { credentials };
+        console.log("GCS: Używam klucza ze zmiennych środowiskowych.");
+    } catch (err) {
+        console.error("BŁĄD PARSOWANIA GCS_KEY_JSON:", err);
+    }
 }
 
 const gcs = new Storage(gcsConfig);
 const bucket = gcs.bucket(process.env.GCS_BUCKET_NAME || "gut-games-game-files-bucket");
 
+// --- REJESTRACJA ---
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -55,7 +61,12 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({
       token,
-      user: { id: user._id, username: user.username, email: user.email },
+      user: { 
+        id: user._id, 
+        username: user.username, 
+        email: user.email,
+        isAdmin: user.isAdmin // Dodano dla frontendu
+      },
       message: "Konto zostało utworzone"
     });
   } catch (err) {
@@ -64,13 +75,10 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// --- LOGOWANIE ---
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Podaj e-mail oraz hasło" });
-    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -86,7 +94,12 @@ router.post("/login", async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, username: user.username, email: user.email },
+      user: { 
+        id: user._id, 
+        username: user.username, 
+        email: user.email,
+        isAdmin: user.isAdmin // Dodano dla frontendu
+      },
       message: "Zalogowano pomyślnie"
     });
   } catch (err) {
@@ -95,6 +108,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// --- DODAWANIE GRY ---
 router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -116,31 +130,39 @@ router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
         }
     });
 
+    // Poprawiona obsługa błędu w strumieniu
     stream.on('error', (err) => {
-        throw err;
+        console.error("GCS Stream Error:", err);
+        if (!res.headersSent) {
+            res.status(500).json({ message: "Błąd podczas przesyłania pliku do chmury." });
+        }
     });
 
     stream.on('finish', async () => {
         const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
 
-        const newGame = await Game.create({
-          title,
-          description: description || "",
-          gameUrl: publicUrl,
-          author: req.userId,
-        });
+        try {
+            const newGame = await Game.create({
+              title,
+              description: description || "",
+              gameUrl: publicUrl,
+              author: req.userId,
+            });
 
-        res.status(201).json({ 
-          message: "Gra została pomyślnie dodana do biblioteki!", 
-          game: newGame 
-        });
+            res.status(201).json({ 
+              message: "Gra została pomyślnie dodana do biblioteki!", 
+              game: newGame 
+            });
+        } catch (dbErr) {
+            res.status(500).json({ message: "Plik wgrany, ale nie udało się zapisać danych w bazie." });
+        }
     });
 
     stream.end(file.buffer);
 
   } catch (err) {
-    console.error("Błąd GCS / MongoDB:", err);
-    res.status(500).json({ message: "Nie udało się zapisać gry. Spróbuj ponownie później." });
+    console.error("General Add Game Error:", err);
+    res.status(500).json({ message: "Nie udało się przetworzyć żądania." });
   }
 });
 
