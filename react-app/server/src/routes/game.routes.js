@@ -20,7 +20,7 @@ const updateGameRating = async (game, userId, ratingVal) => {
 
     game.ratingCount = game.ratings.length;
     const sum = game.ratings.reduce((acc, curr) => acc + Number(curr.rating), 0);
-    game.ratingAvg = sum / game.ratingCount;
+    game.ratingAvg = Number((sum / game.ratingCount).toFixed(1));
 
     return await game.save();
 };
