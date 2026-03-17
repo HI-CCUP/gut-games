@@ -72,11 +72,11 @@ export default function AdminPanel() {
 
     return (
         <div className="container admin-panel" style={{ padding: "20px", color: "white" }}>
-            <h1>🛡️ Panel Administratora</h1>
+            <h1>Panel Administratora</h1>
             
-            <div style={{ backgroundColor: "#222", padding: "15px", borderRadius: "8px", marginBottom: "30px", border: "1px solid #444" }}>
+            <div style={{ backgroundColor: "#222", padding: "15px", marginBottom: "30px", border: "1px solid #444" }}>
                 <p style={{ fontSize: "1.2rem", margin: 0 }}>
-                    👤 Zarejestrowanych użytkowników: <strong>{data.userCount}</strong>
+                    Zarejestrowanych użytkowników: <strong>{data.userCount}</strong>
                 </p>
             </div>
             

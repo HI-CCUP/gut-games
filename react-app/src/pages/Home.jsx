@@ -51,7 +51,8 @@ const Home = () => {
                         color: "white",
                         width: "100%",
                         maxWidth: "300px",
-                        outline: "none"
+                        outline: "none",
+                        marginTop: "-10px"
                     }}
                 />
             </div>
