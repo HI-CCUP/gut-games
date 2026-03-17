@@ -27,6 +27,9 @@ const Navbar = () => {
                     <>
                         <Link to="/add">Dodaj Grę</Link>
                         <Link to="/profile">Profil</Link>
+                        {user.isAdmin && (
+                            <Link to="/admin" className="admin-link">Panel Admina</Link>
+                        )}
                         <button onClick={logout} className="logout-btn">
                             Wyloguj
                         </button>

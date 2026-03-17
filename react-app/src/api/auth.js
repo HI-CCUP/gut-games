@@ -90,3 +90,77 @@ export async function addGame(file, title, description) {
         return { error: true, message: "Błąd połączenia z serwerem" };
     }
 }
+
+
+
+// Pobieranie danych do dashboardu (statystyki + lista gier)
+export async function getAdminDashboard() {
+    try {
+        const res = await fetch(`${API_URL}/admin/dashboard`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            },
+        });
+
+        const data = await res.json();
+        if (!res.ok) return { error: true, message: data.message || "Błąd pobierania danych admina" };
+        return { error: false, ...data };
+    } catch (err) {
+        return { error: true, message: "Błąd połączenia z serwerem" };
+    }
+}
+
+// Usuwanie gry przez admina
+export async function deleteGameAsAdmin(gameId) {
+    try {
+        const res = await fetch(`${API_URL}/admin/game/${gameId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            },
+        });
+
+        const data = await res.json();
+        if (!res.ok) return { error: true, message: data.message || "Nie udało się usunąć gry" };
+        return { error: false, message: data.message };
+    } catch (err) {
+        return { error: true, message: "Błąd połączenia" };
+    }
+}
+
+// Pobieranie listy użytkowników
+export async function getAdminUsers() {
+    try {
+        const res = await fetch(`${API_URL}/admin/users`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        const data = await res.json();
+        return res.ok ? { error: false, users: data } : { error: true, message: data.message };
+    } catch (err) {
+        return { error: true, message: "Błąd sieci" };
+    }
+}
+
+
+//usuwanie użytkowników przez admina
+export async function deleteUserAsAdmin(userId) {
+    try {
+        const res = await fetch(`${API_URL}/admin/user/${userId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            },
+        });
+        const data = await res.json();
+        return res.ok ? { error: false } : { error: true, message: data.message };
+    } catch (err) {
+        return { error: true, message: "Błąd sieci" };
+    }
+}
