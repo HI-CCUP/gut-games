@@ -91,6 +91,14 @@ export default function GamePage() {
             </div>
 
             <hr style={{ margin: "40px 0", borderColor: "#333" }} />
+
+
+            <section className="comments-section">
+                <div className="game-stats">
+                    <h2>Ostatnia: {game.ratingAvg ? game.ratingAvg.toFixed(1) : "0.0"}/5.0</h2>>
+                </div>
+                <Comments gameId={id} />
+            </section>
         </div>
     );
 }
