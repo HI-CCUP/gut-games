@@ -38,6 +38,8 @@ export default function GamePage() {
 
     const isWebGame = game.gameUrl.endsWith(".html") || game.gameUrl.endsWith(".js");
 
+    
+
     return (
         <div className="container game-page">
             <h1>{game.title}</h1>
@@ -95,7 +97,7 @@ export default function GamePage() {
 
             <section className="comments-section">
                 <div className="game-stats">
-                    <h2>Ostatnia ocena: {game.ratingAvg ? game.ratingAvg.toFixed(1) : "0.0"}/5.0</h2>
+                    <h2>Średnia ocena: {game.ratingAvg ? game.ratingAvg : "0.0"}/5.0</h2>
                 </div>
                 <Comments gameId={id} />
             </section>
