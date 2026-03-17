@@ -133,4 +133,31 @@ router.post("/:id/view", async (req, res) => {
     }
 });
 
+
+//usuwanie gry przez użytkownika
+router.delete("/:id", authMiddleware, async (req, res) => {
+    try {
+
+        const game = await Game.findById(req.params.id);
+        
+        if (!game) {
+            return res.status(404).json({ message: "Nie znaleziono gry" });
+        }
+
+        if (game.author.toString() !== req.userId) {
+            return res.status(403).json({ message: "Brak uprawnień. Możesz usuwać tylko własne gry!" });
+        }
+
+        await Comment.deleteMany({ game: game._id });
+
+        await Game.findByIdAndDelete(req.params.id);
+
+        res.json({ message: "Gra została pomyślnie usunięta" });
+
+    } catch (err) {
+        console.error("Błąd podczas usuwania gry:", err);
+        res.status(500).json({ message: "Błąd serwera podczas usuwania gry" });
+    }
+});
+
 export default router;
