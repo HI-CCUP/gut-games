@@ -95,7 +95,7 @@ export default function GamePage() {
 
             <section className="comments-section">
                 <div className="game-stats">
-                    <h2>Ostatnia: {game.ratingAvg ? game.ratingAvg.toFixed(1) : "0.0"}/5.0</h2>>
+                    <h2>Ostatnia ocena: {game.ratingAvg ? game.ratingAvg.toFixed(1) : "0.0"}/5.0</h2>
                 </div>
                 <Comments gameId={id} />
             </section>
