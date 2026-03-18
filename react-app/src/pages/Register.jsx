@@ -97,6 +97,9 @@ export default function Register() {
               />
             </button>
           </div>
+          <div>
+            <input type="checkbox" required/><span style={{marginLeft: "30%"}}>Akcetuję <a href="../../Terms_of_conditions.pdf" target="_blank" >Regulamin</a></span>
+          </div>
         </div>
 
         <button type="submit">Zarejestruj się</button>
