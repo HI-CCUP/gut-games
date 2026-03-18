@@ -164,3 +164,35 @@ export async function deleteUserAsAdmin(userId) {
         return { error: true, message: "Błąd sieci" };
     }
 }
+
+// Usuwanie komentarza przez admina
+export async function deleteCommentAsAdmin(commentId) {
+    try {
+        const res = await fetch(`${API_URL}/admin/comment/${commentId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            },
+        });
+
+        const text = await res.text(); // Pobieramy surową odpowiedź (może być HTML-em błędu)
+        let data;
+
+        try {
+            data = JSON.parse(text); // Próbujemy zamienić na obiekt
+        } catch (e) {
+            console.error("Serwer nie zwrócił JSON-a. Otrzymano:", text);
+            return { error: true, message: "Błąd serwera (404 lub 500). Sprawdź konsolę Node.js." };
+        }
+
+        if (!res.ok) {
+            return { error: true, message: data.message || "Nie udało się usunąć komentarza" };
+        }
+        
+        return { error: false, message: data.message };
+    } catch (err) {
+        console.error("Błąd sieci:", err);
+        return { error: true, message: "Błąd połączenia z serwerem" };
+    }
+}

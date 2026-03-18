@@ -6,7 +6,6 @@ export default function AdminPanel() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // --- NOWE STANY DO WYSZUKIWANIA ---
     const [searchGame, setSearchGame] = useState("");
     const [searchUser, setSearchUser] = useState("");
 
@@ -43,30 +42,38 @@ export default function AdminPanel() {
     };
 
     const handleDeleteUser = async (id) => {
-        if (!confirm("CZY NA PEWNO chcesz usunąć to konto użytkownika?")) return;
+        if (!confirm("CZY NA PEWNO chcesz usunąć to konto? WSZYSTKIE gry tego użytkownika zostaną również usunięte!")) return;
+        
         const result = await deleteUserAsAdmin(id);
         if (!result.error) {
+            // 1. Usuwamy usera z listy
             setUsers(prev => prev.filter(u => u._id !== id));
-            setData(prev => ({ ...prev, userCount: prev.userCount - 1 }));
+            
+            // 2. Kluczowe: Usuwamy gry tego usera z lokalnego stanu, żeby zniknęły z tabeli wyżej
+            setData(prev => ({ 
+                ...prev, 
+                games: prev.games.filter(g => (g.author?._id || g.author) !== id),
+                userCount: prev.userCount - 1 
+            }));
         } else {
             alert(result.message);
         }
     };
 
-    // --- LOGIKA FILTROWANIA DANYCH ---
-    const filteredGames = data.games.filter(game => {
-        const query = searchGame.toLowerCase();
-        const titleMatch = game.title?.toLowerCase().includes(query);
-        const authorMatch = game.author?.username?.toLowerCase().includes(query);
-        return titleMatch || authorMatch;
-    });
+    // --- LOGIKA FILTROWANIA I OGRANICZANIA DO 10 ---
+    const filteredGames = data.games
+        .filter(game => {
+            const query = searchGame.toLowerCase();
+            return game.title?.toLowerCase().includes(query) || game.author?.username?.toLowerCase().includes(query);
+        })
+        .slice(0, 10); // Ograniczenie do 10 wyników
 
-    const filteredUsers = users.filter(user => {
-        const query = searchUser.toLowerCase();
-        const usernameMatch = user.username?.toLowerCase().includes(query);
-        const emailMatch = user.email?.toLowerCase().includes(query);
-        return usernameMatch || emailMatch;
-    });
+    const filteredUsers = users
+        .filter(user => {
+            const query = searchUser.toLowerCase();
+            return user.username?.toLowerCase().includes(query) || user.email?.toLowerCase().includes(query);
+        })
+        .slice(0, 10); // Ograniczenie do 10 wyników
 
     if (loading) return <div className="container" style={{color: "white"}}>Pobieranie danych panelu...</div>;
 
@@ -80,12 +87,12 @@ export default function AdminPanel() {
                 </p>
             </div>
             
-            {/* SEKCJA GIER */}
+            {/* TABELA GIER */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                <h2 style={{ color: "#0ff", margin: 0 }}>🎮 Zarządzanie Grami</h2>
+                <h2 style={{ color: "#0ff", margin: 0 }}>🎮 Zarządzanie Grami (Top 10)</h2>
                 <input 
                     type="text" 
-                    placeholder="Szukaj gry lub autora..." 
+                    placeholder="Szukaj gry..." 
                     value={searchGame}
                     onChange={(e) => setSearchGame(e.target.value)}
                     style={searchInputStyle}
@@ -113,17 +120,17 @@ export default function AdminPanel() {
                             </tr>
                         ))
                     ) : (
-                        <tr><td colSpan="4" style={{ textAlign: "center", padding: "15px" }}>Brak wyników wyszukiwania.</td></tr>
+                        <tr><td colSpan="4" style={{ textAlign: "center", padding: "15px" }}>Brak wyników.</td></tr>
                     )}
                 </tbody>
             </table>
 
-            {/* SEKCJA UŻYTKOWNIKÓW */}
+            {/* TABELA UŻYTKOWNIKÓW */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                <h2 style={{ color: "#f0f", margin: 0 }}>👥 Zarządzanie Użytkownikami</h2>
+                <h2 style={{ color: "#f0f", margin: 0 }}>👥 Zarządzanie Użytkownikami (Top 10)</h2>
                 <input 
                     type="text" 
-                    placeholder="Szukaj nazwy lub emaila..." 
+                    placeholder="Szukaj użytkownika..." 
                     value={searchUser}
                     onChange={(e) => setSearchUser(e.target.value)}
                     style={searchInputStyle}
@@ -132,7 +139,7 @@ export default function AdminPanel() {
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#111" }}>
                 <thead>
                     <tr style={{ textAlign: "left", borderBottom: "2px solid #444", color: "#f0f" }}>
-                        <th style={{ padding: "12px" }}>Nazwa użytkownika</th>
+                        <th style={{ padding: "12px" }}>Nazwa</th>
                         <th>Email</th>
                         <th>Rola</th>
                         <th>Akcje</th>
@@ -147,7 +154,7 @@ export default function AdminPanel() {
                                 <td>{user.isAdmin ? "⭐ Admin" : "▶️ Gracz"}</td>
                                 <td>
                                     {!user.isAdmin ? (
-                                        <button onClick={() => handleDeleteUser(user._id)} style={{ ...btnStyle }}>USUŃ</button>
+                                        <button onClick={() => handleDeleteUser(user._id)} style={btnStyle}>USUŃ</button>
                                     ) : (
                                         <span style={{ fontSize: "0.8rem", color: "#666" }}>Brak akcji</span>
                                     )}
@@ -155,7 +162,7 @@ export default function AdminPanel() {
                             </tr>
                         ))
                     ) : (
-                        <tr><td colSpan="4" style={{ textAlign: "center", padding: "15px" }}>Brak wyników wyszukiwania.</td></tr>
+                        <tr><td colSpan="4" style={{ textAlign: "center", padding: "15px" }}>Brak wyników.</td></tr>
                     )}
                 </tbody>
             </table>
@@ -163,7 +170,6 @@ export default function AdminPanel() {
     );
 }
 
-// Stajle
 const btnStyle = {
     backgroundColor: "#ff4444", color: "white", border: "none",
     padding: "8px 12px", borderRadius: "4px", cursor: "pointer",

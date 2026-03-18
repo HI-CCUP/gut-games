@@ -3,6 +3,7 @@ import Game from "../models/Game.js";
 import User from "../models/User.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import adminMiddleware from "../middleware/admin.middleware.js";
+import Comment from "../models/Comment.js";
 
 const router = express.Router();
 
@@ -41,6 +42,24 @@ router.delete("/user/:id", authMiddleware, adminMiddleware, async (req, res) => 
         res.json({ message: "Użytkownik został usunięty" });
     } catch (err) {
         res.status(500).json({ message: "Błąd podczas usuwania" });
+    }
+});
+
+router.delete("/comment/:id", authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const commentId = req.params.id;
+        
+        // Sprawdź czy model nazywa się Comment (z dużej litery)
+        const deletedComment = await Comment.findByIdAndDelete(commentId);
+
+        if (!deletedComment) {
+            return res.status(404).json({ message: "Nie znaleziono takiego komentarza w bazie." });
+        }
+
+        res.json({ message: "Komentarz został usunięty." });
+    } catch (err) {
+        console.error("BŁĄD BACKENDU:", err); // ZOBACZ TO W TERMINALU NODE.JS
+        res.status(500).json({ message: "Błąd serwera podczas usuwania." });
     }
 });
 
