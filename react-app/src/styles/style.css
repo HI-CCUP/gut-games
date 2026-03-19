@@ -987,3 +987,15 @@ textarea {
     padding: 24px 18px;
   }
 }
+
+
+.game-display-area:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    border-radius: 0;
+}
+
+.game-display-area:fullscreen iframe {
+    height: 100vh !important;
+}
