@@ -57,12 +57,16 @@ export async function register(username, email, password) {
     }
 }
 
-export async function addGame(file, title, description) {
+export async function addGame(file, title, description, thumbnail) {
     try {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("title", title);
         formData.append("description", description);
+        
+        if (thumbnail) {
+            formData.append("thumbnail", thumbnail);
+        }
 
         const res = await fetch(`${API_URL}/auth/add`, {
             method: "POST",
@@ -196,3 +200,4 @@ export async function deleteCommentAsAdmin(commentId) {
         return { error: true, message: "Błąd połączenia z serwerem" };
     }
 }
+

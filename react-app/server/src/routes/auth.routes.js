@@ -26,7 +26,6 @@ if (fs.existsSync("gcs-key.json")) {
 } else if (process.env.GCS_KEY_JSON) {
     try {
         const credentials = JSON.parse(process.env.GCS_KEY_JSON);
-        // FIX dla Vercela: Naprawa znaków nowej linii w kluczu prywatnym
         if (credentials.private_key) {
             credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
         }
@@ -65,7 +64,7 @@ router.post("/register", async (req, res) => {
         id: user._id, 
         username: user.username, 
         email: user.email,
-        isAdmin: user.isAdmin // Dodano dla frontendu
+        isAdmin: user.isAdmin 
       },
       message: "Konto zostało utworzone"
     });
@@ -98,7 +97,7 @@ router.post("/login", async (req, res) => {
         id: user._id, 
         username: user.username, 
         email: user.email,
-        isAdmin: user.isAdmin // Dodano dla frontendu
+        isAdmin: user.isAdmin
       },
       message: "Zalogowano pomyślnie"
     });
@@ -108,10 +107,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// --- DODAWANIE GRY ---
+// --- DODAWANIE GRY  ---
 router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, thumbnail } = req.body; 
     const file = req.file;
 
     if (!title || !file) {
@@ -130,7 +129,6 @@ router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
         }
     });
 
-    // Poprawiona obsługa błędu w strumieniu
     stream.on('error', (err) => {
         console.error("GCS Stream Error:", err);
         if (!res.headersSent) {
@@ -146,15 +144,17 @@ router.post("/add", authMiddleware, upload.single("file"), async (req, res) => {
               title,
               description: description || "",
               gameUrl: publicUrl,
+              thumbnail: thumbnail || "/bg.png",
               author: req.userId,
             });
 
             res.status(201).json({ 
-              message: "Gra została pomyślnie dodana do biblioteki!", 
+              message: "Gra została pomyślnie dodana!", 
               game: newGame 
             });
         } catch (dbErr) {
-            res.status(500).json({ message: "Plik wgrany, ale nie udało się zapisać danych w bazie." });
+            console.error("DB Error:", dbErr);
+            res.status(500).json({ message: "Plik wgrany, ale wystąpił błąd bazy danych." });
         }
     });
 

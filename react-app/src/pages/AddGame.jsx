@@ -5,10 +5,11 @@ import { addGame as addGameRequest } from "../api/auth";
 import "../styles/Form.css";
 
 export default function AddGame() {
-    const [form, setForm] = useState({ title: "", description: "", file: null });
+    // 1. Dodajemy 'thumbnail' do stanu początkowego
+    const [form, setForm] = useState({ title: "", description: "", thumbnail: "", file: null });
     const [dragOver, setDragOver] = useState(false);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login } = useAuth(); // upewnij się czy to na pewno tu potrzebne, jeśli nie używasz w tym pliku
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,7 +36,8 @@ export default function AddGame() {
         e.preventDefault();
         if (!form.file) return alert("Dodaj plik gry!");
 
-        const result = await addGameRequest(form.file, form.title, form.description);
+        // 2. Przekazujemy thumbnail do API
+        const result = await addGameRequest(form.file, form.title, form.description, form.thumbnail);
 
         if (result.error) return alert(result.message);
 
@@ -57,6 +59,29 @@ export default function AddGame() {
                         onChange={handleChange}
                         required
                     />
+                </div>
+
+                {/* 3. NOWE POLE - Link do miniatury */}
+                <div className="input-wrapper">
+                    <label>Link do zdjęcia (URL):</label>
+                    <input
+                        type="url"
+                        name="thumbnail"
+                        placeholder="np. https://imgur.com/zdjecie.png"
+                        value={form.thumbnail}
+                        onChange={handleChange}
+                    />
+                    {/* Podgląd miniatury na żywo, jeśli wklejono link */}
+                    {form.thumbnail && (
+                        <div style={{ marginTop: "10px", textAlign: "center" }}>
+                            <img 
+                                src={form.thumbnail} 
+                                alt="Podgląd" 
+                                style={{ maxHeight: "150px", borderRadius: "8px", border: "1px solid #0ff" }} 
+                                onError={(e) => e.target.style.display = 'none'}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div
